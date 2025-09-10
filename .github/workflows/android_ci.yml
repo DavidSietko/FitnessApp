@@ -1,49 +1,104 @@
 name: Android CI
 
 on:
-  push: # Trigger the workflow on pushes to any branch
-    branches: [ main, develop ] # Or specify branches like main, develop
-  pull_request: # Also trigger on pull requests to these branches
-    branches: [ main, develop ]
+  push:
+    branches: [ main, develop ] # Runs on pushes to main and develop
+  pull_request:
+    branches: [ main, develop ] # Runs on PRs targeting main and develop
 
 jobs:
   build:
-    runs-on: ubuntu-latest # Use a Linux-based runner
+    name: Build
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3 # Action to check out your repository code
+        uses: actions/checkout@v3
 
       - name: Set up JDK 21
-        uses: actions/setup-java@v3 # Android builds often require a specific JDK
+        uses: actions/setup-java@v3
         with:
-          distribution: 'temurin' # Or 'zulu', 'adopt', etc.
-          java-version: '21' # Match the JDK version your project uses (check build.gradle)
+          distribution: 'temurin'
+          java-version: '21'
 
-      - name: Set up Gradle
+      - name: Set up Gradle with caching
         uses: gradle/gradle-build-action@v2
-          # with:
-          # gradle-version: wrapper # Use the Gradle wrapper defined in your project
-        # cache-read-only: ${{ github.ref != 'refs/heads/main' }} # Example for caching
+        with:
+          gradle-version: wrapper
+          # Only write cache on main & develop
+          cache-read-only: ${{ github.ref != 'refs/heads/main' && github.ref != 'refs/heads/develop' }}
 
       - name: Grant execute permission for gradlew
-        run: chmod +x ./gradlew # The Gradle wrapper might need execute permissions
+        run: chmod +x ./gradlew
 
       - name: Build with Gradle
-        run: ./gradlew build # This command builds the project and runs lint checks and unit tests by default
+        run: ./gradlew build --stacktrace
 
-    # Optional: Run Lint separately if you want a dedicated step or report
-    # - name: Run Android Lint
-    #   run: ./gradlew lintDebug # Or lintRelease, or just lint
+      - name: Upload APKs
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: apk-builds
+          path: app/build/outputs/apk/**/*.apk
 
-    # Optional: Run Unit Tests separately
-    # - name: Run Unit Tests
-    #   run: ./gradlew testDebugUnitTest # Or just test for all variants
+  lint:
+    name: Android Lint
+    runs-on: ubuntu-latest
+    needs: build # Only run if build passes
 
-    # Optional: Upload build artifacts (e.g., APK if you build one, test reports)
-    # - name: Upload Test Reports
-    #   if: always() # Run this step even if previous steps fail
-    #   uses: actions/upload-artifact@v3
-    #   with:
-    #     name: unit-test-reports
-    #     path: app/build/reports/tests/testDebugUnitTest/
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Set up Gradle with caching
+        uses: gradle/gradle-build-action@v2
+        with:
+          gradle-version: wrapper
+          cache-read-only: true # Don’t save cache in lint job
+
+      - name: Run Android Lint
+        run: ./gradlew lintDebug --stacktrace
+
+      - name: Upload Lint Reports
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: lint-reports
+          path: app/build/reports/lint-results-*.html
+
+  test:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    needs: build # Only run if build passes
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Set up Gradle with caching
+        uses: gradle/gradle-build-action@v2
+        with:
+          gradle-version: wrapper
+          cache-read-only: true # Don’t save cache in test job
+
+      - name: Run Unit Tests
+        run: ./gradlew testDebugUnitTest --stacktrace
+
+      - name: Upload Test Reports
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-reports
+          path: app/build/reports/tests/testDebugUnitTest
