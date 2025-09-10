@@ -36,7 +36,7 @@ jobs:
 
       - name: Upload APKs
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: apk-builds
           path: app/build/outputs/apk/**/*.apk
@@ -67,7 +67,7 @@ jobs:
 
       - name: Upload Lint Reports
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: lint-reports
           path: app/build/reports/lint-results-*.html
@@ -98,7 +98,7 @@ jobs:
 
       - name: Upload Test Reports
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: test-reports
           path: app/build/reports/tests/testDebugUnitTest
