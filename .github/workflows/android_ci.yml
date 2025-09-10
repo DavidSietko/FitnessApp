@@ -1,0 +1,49 @@
+name: Android CI
+
+on:
+  push: # Trigger the workflow on pushes to any branch
+    branches: [ main, develop ] # Or specify branches like main, develop
+  pull_request: # Also trigger on pull requests to these branches
+    branches: [ main, develop ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest # Use a Linux-based runner
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3 # Action to check out your repository code
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3 # Android builds often require a specific JDK
+        with:
+          distribution: 'temurin' # Or 'zulu', 'adopt', etc.
+          java-version: '21' # Match the JDK version your project uses (check build.gradle)
+
+      - name: Set up Gradle
+        uses: gradle/gradle-build-action@v2
+          # with:
+          # gradle-version: wrapper # Use the Gradle wrapper defined in your project
+        # cache-read-only: ${{ github.ref != 'refs/heads/main' }} # Example for caching
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew # The Gradle wrapper might need execute permissions
+
+      - name: Build with Gradle
+        run: ./gradlew build # This command builds the project and runs lint checks and unit tests by default
+
+    # Optional: Run Lint separately if you want a dedicated step or report
+    # - name: Run Android Lint
+    #   run: ./gradlew lintDebug # Or lintRelease, or just lint
+
+    # Optional: Run Unit Tests separately
+    # - name: Run Unit Tests
+    #   run: ./gradlew testDebugUnitTest # Or just test for all variants
+
+    # Optional: Upload build artifacts (e.g., APK if you build one, test reports)
+    # - name: Upload Test Reports
+    #   if: always() # Run this step even if previous steps fail
+    #   uses: actions/upload-artifact@v3
+    #   with:
+    #     name: unit-test-reports
+    #     path: app/build/reports/tests/testDebugUnitTest/
