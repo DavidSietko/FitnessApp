@@ -1,6 +1,5 @@
 package processing.test.fitnessapp.models;
 
-import java.util.UUID;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,6 +11,9 @@ public class Exercise {
 
     public Exercise(long id, String name, int workoutId) {
         this.id = id;
+        if(name.trim().isEmpty()) {
+            throw new IllegalArgumentException("Name cannot be empty");
+        }
         this.name = name;
         this.workoutId = workoutId;
         this.set = new ArrayList<>();
@@ -35,5 +37,12 @@ public class Exercise {
 
     public void addSet(Set set) {
         this.set.add(set);
+    }
+
+    public void removeSet(int index) {
+        if(index < 0 || index >= this.set.size()) {
+            throw new IllegalArgumentException("Index out of bounds");
+        }
+        this.set.remove(index);
     }
 }

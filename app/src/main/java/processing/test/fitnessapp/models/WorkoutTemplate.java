@@ -9,13 +9,18 @@ public class WorkoutTemplate {
     private List<String> exerciseNames; // Will be stored as a JSON array string
 
     public WorkoutTemplate(String name) {
+        if(name == null) {
+            throw new IllegalArgumentException("Name cannot be null");
+        }
         this.name = name;
         this.exerciseNames = new ArrayList<>();
     }
 
     public WorkoutTemplate(long id, String name) {
+        if(name == null) {
+            throw new IllegalArgumentException("Name cannot be null");
+        }
         this.id = id;
-        this.name = name;
         this.exerciseNames = new ArrayList<>();
     }
 
@@ -31,9 +36,17 @@ public class WorkoutTemplate {
 
     // Getters and Setters
     public long getId() { return id; }
-    public void setId(long id) { this.id = id; }
     public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+
+    public void setName(String name) {
+        if(name == null) {
+            throw new IllegalArgumentException("Name cannot be null");
+        }
+        if(name.trim().isEmpty()) {
+            throw new IllegalArgumentException("Name cannot be empty");
+        }
+        this.name = name; }
+
     public List<String> getExerciseNames() { return exerciseNames; }
     public void setExerciseNames(List<String> exerciseNames) { this.exerciseNames = exerciseNames; }
 }
