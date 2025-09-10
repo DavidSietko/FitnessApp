@@ -65,14 +65,14 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Run Android Lint
-        run: ./gradlew lintDebug --stacktrace
+        run: ./gradlew :app:lintDebug --stacktrace
 
       - name: Upload Lint Reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: lint-reports
-          path: app/build/reports/lint-results-*.html
+          path: app/build/reports/lint-results-debug.html
 
   test:
     name: Unit Tests
@@ -99,7 +99,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Run Unit Tests
-        run: ./gradlew testDebugUnitTest --stacktrace
+        run: ./gradlew :app:testDebugUnitTest --stacktrace
 
       - name: Upload Test Reports
         if: always()
@@ -107,3 +107,4 @@ jobs:
         with:
           name: test-reports
           path: app/build/reports/tests/testDebugUnitTest
+
